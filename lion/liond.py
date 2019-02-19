@@ -13,7 +13,12 @@ import settings
 import utilities
 from pathlib import Path
 from discord.ext import commands
-from systemd.journal import JournalHandler
+
+useLogs = True
+try:
+    from systemd.journal import JournalHandler
+except ImportError:
+    useLogs = False
 
 
 class LionBot(commands.Bot):
@@ -30,9 +35,10 @@ class LionBot(commands.Bot):
         super().__init__(*arguments, **keyword_arguments)
 
         # Create a new logger.
-        self._logger = logging.getLogger(__name__)
-        self._logger.addHandler(JournalHandler())
-        self._logger.setLevel(logging.INFO)
+        if useLogs:
+            self._logger = logging.getLogger(__name__)
+            self._logger.addHandler(JournalHandler())
+            self._logger.setLevel(logging.INFO)
 
         # Remove the default help command.
         self.remove_command("help")
@@ -97,7 +103,10 @@ class LionBot(commands.Bot):
     
     def log(self, message, level=logging.INFO):
         """Log a message using the bot's logger."""
-        self._logger.log(level, message)
+        if useLogs:
+            self._logger.log(level, message)
+        else:
+            print(message)
 
 
 # Main entry point to the daemon.
